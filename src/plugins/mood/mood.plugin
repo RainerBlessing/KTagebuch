@@ -1,0 +1,9 @@
+Filename=ktagebuch_mood
+Author=Rainer Blessing
+Site=http://theblessing.net
+Email=rainer@theblessing.net
+License=GPL
+Name=Mood Plugin
+Name[de]=Stimmungs Plugin
+Comment=Add your current mood to your entry.
+Comment[de]=Fügt dem Eintrag die aktuelle Stimmung hinzu.

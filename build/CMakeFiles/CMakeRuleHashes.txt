@@ -1,0 +1,8 @@
+# Hashes of file build rules.
+9e06c8d2c30098f7354f6dfd7a81e62b CMakeFiles/uninstall
+d41d8cd98f00b204e9800998ecf8427e doc/CMakeFiles/doc-handbook
+6da5a89145f94a9613104b08df9094a6 doc/index.cache.bz2
+e199c6a9af0536c9fca992fa7fc3c2f2 src/CMakeFiles/ktagebuch_automoc
+11cf5c6f2c61e9ee6b873bf2b4a33b80 src/settings.h
+887a08967825390850216315a7c4883c src/ui_ktagebuchview_base.h
+ffef4c3437ed95092cb666c7040c65b8 src/ui_prefs_base.h
