@@ -127,7 +127,7 @@ void KTagebuch::setupActions()
     insertImageAction->setText("Insert &Image");
     insertImageAction->setShortcut(KShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_I));
     actionCollection()->addAction("insertImage",insertImageAction);
-    connect(insertImageAction,SIGNAL(triggered()),this,SLOT(slotInsertImageAction()));
+    connect(insertImageAction,SIGNAL(triggered()),this,SLOT(slotInsertImage()));
     
     KAction *insertHTMLAction = new KAction(this);
     insertHTMLAction->setText(i18n ("Insert HTML"));
@@ -285,9 +285,9 @@ void KTagebuch::setupActions()
     actionCollection()->addAction("datepicker",datepickerAction);
     connect(datepickerAction,SIGNAL(triggered()),this,SLOT (slotDatepicker()));            
     
-/*    if (config.readEntry("MenuBar").isEmpty())
-        resize(640,400);
-*/
+    if (editorGroup.readEntry("MenuBar").isEmpty())
+        resize(800,600);
+
     setAutoSaveSettings ();
 /* TODO
     mLibraryLoader=new LibraryLoader();
