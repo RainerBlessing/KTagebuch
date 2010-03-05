@@ -6,15 +6,14 @@
 #include <klocale.h>
 
 #include <qfile.h>
-#include <qdir.h>
+
 #include <qstringlist.h>
-#include <qcstring.h>
 #include <qregexp.h>
 
 #include "filesystem.h"
 #include <iostream>
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName){
+static int callback(void (*NotUsed), int argc, char **argv, char **azColName){
   int i;
   for(i=0; i<argc; i++){
     printf("%s = %s\n", azColName[i], argv[i] ? argv[i] : "NULL");
@@ -32,7 +31,7 @@ FileSystem::~FileSystem(){
 	QDir tmpDir = KGlobal::dirs()->saveLocation ("tmp", "ktagebuch");
 	QStringList tmpFiles= tmpDir.entryList();
 		for ( QStringList::Iterator it = tmpFiles.begin(); it != tmpFiles.end(); ++it ) {
-        		QFile file(tmpDir.absPath()+"/"+*it);
+        		QFile file(tmpDir.absolutePath().toUtf8()+"/"+*it);
 			file.remove();
 		}
 	
@@ -62,7 +61,7 @@ void FileSystem::importEntries(){
 	}
 	if (import==false) return;
 
-	int res=KMessageBox::warningContinueCancel   (0,i18n("All journal entries will be migrated to a database file.\n The files and subdirectories in ")+appDir.absPath()+i18n(" will be deleted after the import.\n Make a backup of this directory in case the import fails.\n Press 'Continue' to start the import."));
+	int res=KMessageBox::warningContinueCancel   (0,i18n("All journal entries will be migrated to a database file.\n The files and subdirectories in ")+appDir.absolutePath().toUtf8()+i18n(" will be deleted after the import.\n Make a backup of this directory in case the import fails.\n Press 'Continue' to start the import."));
 	if(res!=KMessageBox::Continue){
 		exit(1);
 	}                	
@@ -76,7 +75,7 @@ void FileSystem::importEntries(){
 	 * - open table or create table
 	 * - exit if file or table could not be created
 	 */
-	rc = sqlite3_open(appDir.absPath()+"/ktagebuch.db", &db);
+	rc = sqlite3_open(appDir.absolutePath().toUtf8()+"/ktagebuch.db", &db);
   	if( rc!=SQLITE_OK ){
     		sqlite3_close(db);
 		KMessageBox::error   (   0, i18n("Can't open database: ")+ sqlite3_errmsg(db));
@@ -94,15 +93,15 @@ void FileSystem::importEntries(){
 
 	for ( QStringList::Iterator it = all.begin(); it != all.end(); ++it ) {
 		if((*it).length()!=8)continue;
-		QDir dateDir(appDir.absPath()+"/"+*it);
+		QDir dateDir(appDir.absolutePath().toUtf8()+"/"+*it);
 		dateDir.setFilter(QDir::Files);
 		QStringList subDir= dateDir.entryList();
 		for ( QStringList::Iterator it2 = subDir.begin(); it2 != subDir.end(); ++it2 ) {
-        		QFile file(dateDir.absPath()+"/"+*it2);
-			if ( file.open( IO_ReadOnly ) ) {
+        		QFile file(dateDir.absolutePath().toUtf8()+"/"+*it2);
+			if ( file.open( QIODevice::ReadOnly ) ) {
 				QByteArray fileArray=file.readAll();
-				QString sql(sqlite3_mprintf("INSERT INTO ktagebuch_entries(Date,Journal,Filename,File) VALUES(%d,'%q','%q',?);", atoi(*it),"default",((QString)*it2).ascii()));
-				rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+				QString sql(sqlite3_mprintf("INSERT INTO ktagebuch_entries(Date,Journal,Filename,File) VALUES(%d,'%q','%q',?);", atoi(((QString)*it).toAscii().constData()),"default",((QString)*it2).toUtf8().constData()));
+				rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 				if (rc == SQLITE_OK && plineInfo != NULL) {	
 					sqlite3_bind_blob(plineInfo, 1, fileArray, fileArray.size(),free);
 					if((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){
@@ -112,7 +111,7 @@ void FileSystem::importEntries(){
 				}
 				file.close();			
 			}else {
-				KMessageBox::error   (   0, i18n("Could not open file: ")+ dateDir.absPath()+"/"+*it2);
+				KMessageBox::error   (   0, i18n("Could not open file: ")+ dateDir.absolutePath().toUtf8()+"/"+*it2);
 				exit(1);
 			}
 		}
@@ -121,25 +120,25 @@ void FileSystem::importEntries(){
 
 	bool removed=true;
 	for ( QStringList::Iterator it = all.begin(); it != all.end(); ++it ) {
-		QDir dateDir(appDir.absPath()+"/"+*it);
+		QDir dateDir(appDir.absolutePath().toUtf8()+"/"+*it);
 		dateDir.setFilter(QDir::Files);
 		QStringList subDir= dateDir.entryList();
 		for ( QStringList::Iterator it2 = subDir.begin(); it2 != subDir.end(); ++it2 ) {
-        		QFile file(dateDir.absPath()+"/"+*it2);
+        		QFile file(dateDir.absolutePath().toUtf8()+"/"+*it2);
 			if (!((QString)*it).startsWith("."))
 			  if(file.remove()==false) removed=false;
 		}
-		QDir dir(appDir.absPath());
+		QDir dir(appDir.absolutePath().toUtf8());
 		if (!((QString)*it).startsWith("."))
 			if(dir.rmdir(*it)==false) removed=false;
 	}
 	if(removed==false){
-		KMessageBox::error   (   0, i18n("Some files could not be deleted.\n Please open the directory ")+ appDir.absPath()+i18n(" and delete the subdirectories manually."));
+		KMessageBox::error   (   0, i18n("Some files could not be deleted.\n Please open the directory ")+ appDir.absolutePath().toUtf8()+i18n(" and delete the subdirectories manually."));
 	}
 }
 
 void FileSystem::openDB(){
-	int rc = sqlite3_open(appDir.absPath()+"/ktagebuch.db", &db);
+	int rc = sqlite3_open(appDir.absolutePath().toUtf8()+"/ktagebuch.db", &db);
 	if( rc!=SQLITE_OK ){
     		sqlite3_close(db);
 		KMessageBox::error   (   0, i18n("Can't open database: ")+ sqlite3_errmsg(db));
@@ -170,16 +169,16 @@ QString FileSystem::loadEntry(int date){
 	 */
 
 	QDir tmpDir = KGlobal::dirs()->saveLocation ("tmp", "ktagebuch");	
-	rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	
 	QStringList slImg;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){	
 		QString filename=(const char*)(sqlite3_column_text(plineInfo,0));		
 		char* contentArray;
 		contentArray=(char*)sqlite3_column_blob(plineInfo,1);
-		QFile out (tmpDir.absPath() + "/" + filename);
-		if(out.open (IO_WriteOnly)){
-			out.writeBlock (contentArray, sqlite3_column_bytes(plineInfo,1));
+		QFile out (tmpDir.absolutePath().toUtf8() + "/" + filename);
+		if(out.open (QIODevice::WriteOnly)){
+			out.write (contentArray, sqlite3_column_bytes(plineInfo,1));
 			out.close();
 		}
 		slImg.append(filename);
@@ -187,7 +186,7 @@ QString FileSystem::loadEntry(int date){
 
 
 	sql=sqlite3_mprintf("Select Filename,File from ktagebuch_entries where Date=%d and Filename='entry';", date);
-	rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			entry=(const char*)(sqlite3_column_text(plineInfo,1));
@@ -202,9 +201,9 @@ QString FileSystem::loadEntry(int date){
 		linkQRegExp.setMinimal(true);
 		int pos=0;
 		int pos2=pos;
-		while ((pos=linkQRegExp.search(entry,pos))>-1){
-			if (pos>-1 && (pos2=entry.find(*it,pos))>-1){
-				entry=entry.replace(pos,pos2-pos-1,"src="+tmpDir.absPath());
+		while ((pos=linkQRegExp.indexIn(entry,pos))>-1){
+			if (pos>-1 && (pos2=entry.indexOf(*it,pos))>-1){
+				entry=entry.replace(pos,pos2-pos-1,"src="+tmpDir.absolutePath().toUtf8());
 			}
 			pos++;
 		}		
@@ -216,14 +215,14 @@ bool FileSystem::saveEntry(int date,QString text){
 	sqlite3_stmt *plineInfo = 0;
 	int rc;
 	QString sql(sqlite3_mprintf("INSERT INTO ktagebuch_entries(Date,Journal,Filename,File) VALUES(%d,'%q','%q',?);", date,"default","entry"));
-				rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+				rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 				if (rc == SQLITE_OK && plineInfo != NULL) {	
-					sqlite3_bind_blob(plineInfo, 1, text, text.length(),free);
+					sqlite3_bind_blob(plineInfo, 1, text.toUtf8(), text.length(),free);
 					if((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){
-						QString sql(sqlite3_mprintf("Update ktagebuch_entries set File=? where Date=%d and Journal='%q' and Filename='%q'", date,name.ascii(),"entry"));
-						rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);				
+						QString sql(sqlite3_mprintf("Update ktagebuch_entries set File=? where Date=%d and Journal='%q' and Filename='%q'", date,name.toUtf8().constData(),"entry"));
+						rc = sqlite3_prepare(db, sql.toUtf8().constData(), -1, &plineInfo, 0);				
 						if (rc == SQLITE_OK && plineInfo != NULL) {	
-							sqlite3_bind_blob(plineInfo, 1, text, text.length(),free);
+							sqlite3_bind_blob(plineInfo, 1, text.toUtf8(), text.length(),free);
 							if((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){
 								KMessageBox::error   (   0, i18n("Can't insert row.\n"));
 								return false;
@@ -237,7 +236,7 @@ bool FileSystem::saveEntry(int date,QString text){
 QString FileSystem::getPreviousEntry(int date){	
 	sqlite3_stmt *plineInfo = 0;
 	QString sql(sqlite3_mprintf("select max(Date) from ktagebuch_entries where Date<%d;", date));
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			entry=(const char*)(sqlite3_column_text(plineInfo,0));
@@ -248,7 +247,7 @@ QString FileSystem::getPreviousEntry(int date){
 QString FileSystem::getFirstEntry(){	
 	sqlite3_stmt *plineInfo = 0;
 	QString sql(sqlite3_mprintf("select min(Date) from ktagebuch_entries where Date>0;"));	
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			entry=(const char*)(sqlite3_column_text(plineInfo,0));						
@@ -259,7 +258,7 @@ QString FileSystem::getFirstEntry(){
 QString FileSystem::getNextEntry(int date){
 	sqlite3_stmt *plineInfo = 0;
 	QString sql(sqlite3_mprintf("select min(Date) from ktagebuch_entries where Date>%d;", date));
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){											
 			entry=(const char*)(sqlite3_column_text(plineInfo,0));
@@ -270,7 +269,7 @@ QString FileSystem::getNextEntry(int date){
 QString FileSystem::getLastEntry(){	
 	sqlite3_stmt *plineInfo = 0;
 	QString sql(sqlite3_mprintf("select max(Date) from ktagebuch_entries;"));
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			entry=(const char*)(sqlite3_column_text(plineInfo,0));
@@ -281,7 +280,7 @@ QString FileSystem::getLastEntry(){
 QStringList* FileSystem::getDates(){	
 	sqlite3_stmt *plineInfo = 0;
 	QString sql("select Date from ktagebuch_entries Order by Date;");
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	QStringList* dateStringList=new QStringList();
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
@@ -293,7 +292,7 @@ QStringList* FileSystem::getDates(){
 QStringList* FileSystem::getDates(QString restriction){	
 	sqlite3_stmt *plineInfo = 0;
 	QString sql("select Date from ktagebuch_entries where Date "+restriction+" and Filename='entry' Order by Date;");
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	QStringList* dateStringList=new QStringList();
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
@@ -304,13 +303,13 @@ QStringList* FileSystem::getDates(QString restriction){
 
 bool FileSystem::storeFile(int date,QString fileName, const char* buffer, int size){
 	sqlite3_stmt *plineInfo = 0;
-	QString sql(sqlite3_mprintf("INSERT INTO ktagebuch_entries(Date,Journal,Filename,File) VALUES(%d,'%q','%q',?);", date,"default",fileName.ascii()));
-				int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	QString sql(sqlite3_mprintf("INSERT INTO ktagebuch_entries(Date,Journal,Filename,File) VALUES(%d,'%q','%q',?);", date,"default",fileName.toUtf8().constData()));
+				int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 				if (rc == SQLITE_OK && plineInfo != NULL) {	
 					sqlite3_bind_blob(plineInfo, 1, buffer, size,free);
 					if((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){
-						QString sql(sqlite3_mprintf("Update ktagebuch_entries set File=? where Date=%d and Journal='%q' and Filename='%q'", date,"default",fileName.ascii()));
-						rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);				
+						QString sql(sqlite3_mprintf("Update ktagebuch_entries set File=? where Date=%d and Journal='%q' and Filename='%q'", date,"default",fileName.toUtf8().constData()));
+						rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);				
 						if (rc == SQLITE_OK && plineInfo != NULL) {	
 							sqlite3_bind_blob(plineInfo, 1, buffer, size,free);
 							if((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){
@@ -328,8 +327,8 @@ QString FileSystem::loadFile(int date,QString fileName){
 	sqlite3_stmt *plineInfo = 0;
 	int rc;
 	
-	QString sql=sqlite3_mprintf("Select Filename,File from ktagebuch_entries where Date=%d and Filename='%q';", date,fileName.ascii());
-	rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	QString sql=sqlite3_mprintf("Select Filename,File from ktagebuch_entries where Date=%d and Filename='%q';", date,fileName.toUtf8().constData());
+	rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			entry=(const char*)(sqlite3_column_text(plineInfo,1));
@@ -342,7 +341,7 @@ void FileSystem::exportEntry(int date,QString fileName){
 	QString sql,dateStr;
 	dateStr.setNum(date);
 	sql=sqlite3_mprintf("Select File from ktagebuch_entries where Date=%d and Filename='entry';", date);
-	int rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	int rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	QString entry=0;
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			entry=(const char*)(sqlite3_column_text(plineInfo,0));
@@ -352,23 +351,23 @@ void FileSystem::exportEntry(int date,QString fileName){
 	QRegExp linkQRegExp("src=(\\S+)\\b");
         int pos=0;
 	
-	while ((pos=linkQRegExp.search(entry,pos))>-1){
+	while ((pos=linkQRegExp.indexIn(entry,pos))>-1){
 			QString link=linkQRegExp.cap(1);
-			int i=link.findRev(QRegExp("/"));
+			int i=link.indexOf(QRegExp("/"),-1);
 			linkList.append(link.right(link.length()-(i+1)));	
 			entry=entry.replace(pos+4,i+1,"");
 		pos++;
 	}		
 	
 	QFile entry_out (fileName);
-	if(entry_out.open (IO_WriteOnly)){
-		entry_out.writeBlock (entry, entry.length());
+	if(entry_out.open (QIODevice::WriteOnly)){
+		entry_out.write(entry.toUtf8(), entry.length());
 		entry_out.close();
 	}
 
 	sql="select Filename,File from ktagebuch_entries where Date="+dateStr+" and Filename not like 'entry';";
 				
-	rc = sqlite3_prepare(db, sql.ascii(), -1, &plineInfo, 0);
+	rc = sqlite3_prepare(db, sql.toUtf8(), -1, &plineInfo, 0);
 	
 	while ((rc=sqlite3_step(plineInfo))!=SQLITE_DONE){					
 			QString entry_filename=(const char*)(sqlite3_column_text(plineInfo,0));
@@ -376,9 +375,9 @@ void FileSystem::exportEntry(int date,QString fileName){
 				if(entry_filename==(*it)){					
 					char* contentArray;
 					contentArray=(char*)sqlite3_column_blob(plineInfo,1);
-					QFile out (fileName.left(fileName.findRev(QRegExp("/"))+1)+entry_filename);
-					if(out.open (IO_WriteOnly)){
-						out.writeBlock (contentArray, sqlite3_column_bytes(plineInfo,1));
+					QFile out (fileName.left(fileName.indexOf(QRegExp("/"),-1)+1)+entry_filename);
+					if(out.open (QIODevice::WriteOnly)){
+						out.write(contentArray, sqlite3_column_bytes(plineInfo,1));
 						out.close();
 					}
 					break;

@@ -2,15 +2,18 @@ set(ktagebuch_SRCS
    ktagebuch.cpp
    main.cpp
    ktagebuchview.cpp
+   fs/filesystem.cpp
  )
 
-kde4_add_ui_files(ktagebuch_SRCS ktagebuchview_base.ui prefs_base.ui)
+add_subdirectory( fs )
+
+kde4_add_ui_files(ktagebuch_SRCS prefs_base.ui)
 
 kde4_add_kcfg_files(ktagebuch_SRCS settings.kcfgc )
 
 kde4_add_executable(ktagebuch ${ktagebuch_SRCS})
 
-target_link_libraries(ktagebuch ${KDE4_KDEUI_LIBS} )
+target_link_libraries(ktagebuch ${KDE4_KDEUI_LIBS} ${SQLITE_LIBRARIES} )
 
 install(TARGETS ktagebuch ${INSTALL_TARGETS_DEFAULT_ARGS} )
 

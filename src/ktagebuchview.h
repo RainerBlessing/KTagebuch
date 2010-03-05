@@ -7,11 +7,12 @@
 #define KTAGEBUCHVIEW_H
 
 #include <QtGui/QWidget>
-
-#include "ui_ktagebuchview_base.h"
+#include <ktabwidget.h>
+//#include "ui_ktagebuchview_base.h"
 
 class QPainter;
 class KUrl;
+class KTextEdit;
 
 /**
  * This is the main view class for KTagebuch.  Most of the non-menu,
@@ -23,7 +24,7 @@ class KUrl;
  * @version %{VERSION}
  */
 
-class KTagebuchView : public QWidget, public Ui::ktagebuchview_base
+class KTagebuchView : public KTabWidget//, public Ui::ktagebuchview_base
 {
     Q_OBJECT
 public:
@@ -37,9 +38,9 @@ public:
      */
     virtual ~KTagebuchView();
 
+    KTextEdit* getTextEdit();
 private:
-    Ui::ktagebuchview_base ui_ktagebuchview_base;
-
+    //Ui::ktagebuchview_base ui_ktagebuchview_base;    
 signals:
     /**
      * Use this signal to change the content of the statusbar

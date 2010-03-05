@@ -6,19 +6,27 @@
 #include "ktagebuchview.h"
 #include "settings.h"
 
+#include <ktabwidget.h>
+#include <ktextedit.h>
 #include <klocale.h>
 #include <QtGui/QLabel>
 
-KTagebuchView::KTagebuchView(QWidget *)
+KTagebuchView::KTagebuchView(QWidget *parent)
 {
-    ui_ktagebuchview_base.setupUi(this);
+  setParent(parent);
+  addTab(new KTextEdit(this),"textEdit");  
+  //  ui_ktagebuchview_base.setupUi(this);
     settingsChanged();
     setAutoFillBackground(true);
 }
 
 KTagebuchView::~KTagebuchView()
-{
+{  
+}
 
+KTextEdit* KTagebuchView::getTextEdit()
+{
+  return (KTextEdit*)currentWidget();
 }
 
 void KTagebuchView::switchColors()
@@ -36,11 +44,9 @@ void KTagebuchView::settingsChanged()
     QPalette pal;
     pal.setColor( QPalette::Window, Settings::col_background());
     pal.setColor( QPalette::WindowText, Settings::col_foreground());
-    ui_ktagebuchview_base.kcfg_sillyLabel->setPalette( pal );
-
+    
     // i18n : internationalization
-    ui_ktagebuchview_base.kcfg_sillyLabel->setText( i18n("This project is %1 days old",Settings::val_time()) );
     emit signalChangeStatusbar( i18n("Settings changed") );
 }
 
-#include "ktagebuchview.moc"
+//#include "ktagebuchview.moc"

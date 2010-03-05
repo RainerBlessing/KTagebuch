@@ -1,8 +1,49 @@
-<!DOCTYPE kpartgui SYSTEM "kpartgui.dtd">
-<kpartgui name="ktagebuch" version="1">
+<?xml version="1.0" encoding="UTF-8"?>
+<gui name="ktagebuch"
+xmlns="http://www.kde.org/standards/kxmlgui/1.0"
+xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+xsi:schemaLocation="http://www.kde.org/standards/kxmlgui/1.0
+http://www.kde.org/standards/kxmlgui/1.0/kxmlgui.xsd" >
 <MenuBar>
-  <Menu name="move"><text>&amp;Move</text>
-    <Action name="switch_action" />
+  <Menu name="file"><text>&amp;File</text>
+  <Action name="exportEntry"/>
+  </Menu>
+  <Menu name="insert"><text>&amp;Insert</text>
+  <Action name="insertDate"/>
+  <Action name="insertTime"/>
+  <Action name="insertDateAndTime"/>
+  <Action name="insertImage"/>
+  <Action name="insertHTML"/>
   </Menu>
 </MenuBar>
-</kpartgui>
+<ToolBar name="browsingToolBar" iconText="icononly"><text>Browsing Toolbar</text>
+  <Action name="firstEntry"/>
+  <Action name="yearBack"/>
+  <Action name="monthBack"/>
+  <Action name="previousEntry"/>
+  <Action name="dayBack"/>
+  <Action name="today"/>
+  <Action name="dayForward"/>
+  <Action name="nextEntry"/>
+  <Action name="monthForward"/>
+  <Action name="yearForward"/>
+  <Action name="lastEntry"/>
+  <Action name="datepicker"/>  
+</ToolBar>
+<ToolBar name="fontToolBar" position="top"><text>Font Toolbar</text>
+  <Action name="format_fontfamily"/>
+  <Action name="format_fontsize" />
+  <Separator/>
+  <Action name="format_bold" />
+  <Action name="format_italic"/>
+  <Action name="format_underline"/>
+  <Action name="format_strike"/>
+  <Separator/>
+  <Action name="format_color"/>
+  <Separator/>
+  <Action name="format_alignleft"/>
+  <Action name="format_aligncenter"/>
+  <Action name="format_alignright"/>
+  <Action name="format_alignblock"/>
+</ToolBar>
+</gui>

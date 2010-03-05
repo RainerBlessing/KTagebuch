@@ -22,7 +22,8 @@
 #include <config.h>
 #endif
 
-class QDir;
+#include <qdir.h>
+
 class QString;
 class sqlite3;
 class QStringList;
