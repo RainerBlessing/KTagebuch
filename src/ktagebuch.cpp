@@ -28,8 +28,11 @@
 #include <ktoolbar.h>
 #include <kmessagebox.h>
 #include <kfontaction.h>
+#include <kfontsizeaction.h>
+#include <ktoggleaction.h>
 
 #include "fs/filesystem.h"
+//#include "library/tkcoloractions.h"
 
 KTagebuch::KTagebuch()
     : KXmlGuiWindow(),
@@ -151,63 +154,74 @@ void KTagebuch::setupActions()
     KAction *custom = new KAction(KIcon("colorize"), i18n("Swi&tch Colors"), this);
     actionCollection()->addAction( QLatin1String("switch_action"), custom );
     connect(custom, SIGNAL(triggered(bool)), m_view, SLOT(switchColors()));
-    /*TODO
-        actionFormatFontFamily = new KFontAction( i18n( "Font Family" ), 0,
-                             actionCollection(), "format_fontfamily" );
-    connect( actionFormatFontFamily, SIGNAL( activated( const QString & ) ),
+
+    actionFormatFontFamily = new KFontAction( i18n( "Font Family" ), this);
+    actionCollection()->addAction("format_fontfamily",actionFormatFontFamily);
+    connect( actionFormatFontFamily, SIGNAL( triggered( const QString & ) ),
              this, SLOT( setFont( const QString & ) ) );
-    
-    QFont f= QApplication::font ();//TODO
-    */
-    /*TODO
-    if (config.readEntry ("font")) {
-        f.fromString (config.readEntry ("font"));
+    QFont f= QApplication::font ();
+    if (editorGroup.readEntry ("font")!=NULL) {
+        f.fromString (editorGroup.readEntry ("font"));
     } else {
         f = QApplication::font ();
     }
-    */
-//TODO    actionFormatFontFamily->setFont (f.family ());
-/* TODO
-    actionFormatFontSize=new KFontSizeAction(i18n("Font Size"),0,actionCollection(),"format_fontsize");
-    connect (actionFormatFontSize, SIGNAL (fontSizeChanged(int)), this, SLOT (setFontSize(int)));
+    
+   actionFormatFontFamily->setFont (f.family ());
+
+    actionFormatFontSize=new KFontSizeAction(i18n("Font Size"),this);
+    connect (actionFormatFontSize, SIGNAL (triggered(int)), this, SLOT (setFontSize(int)));
     actionFormatFontSize->setEnabled( true );
     actionFormatFontSize->setFontSize(f.pointSize());
-
-    actionFormatBold=new KToggleAction(i18n("&Bold"),"text_bold",CTRL + Key_B,this,SLOT(slotBold()),
-                                       actionCollection(),"format_bold");
-    actionFormatBold->setEnabled(true);
-
-    actionFormatItalic = new KToggleAction( i18n( "&Italic" ), "text_italic", CTRL + Key_I,
-                                            this, SLOT( slotItalic() ),
-                                            actionCollection(), "format_italic" );
-    actionFormatUnderline = new KToggleAction( i18n( "&Underline" ), "text_under", CTRL + Key_U,
-                            this, SLOT( slotUnderline() ),
-                            actionCollection(), "format_underline" );
-    actionFormatAlignLeft = new KToggleAction( i18n( "Align &Left" ), "text_left", CTRL + Key_L,
-                            this, SLOT( slotLeft() ),
-                            actionCollection(), "format_alignleft" );
-    actionFormatAlignLeft->setExclusiveGroup( "align" );
+    actionCollection()->addAction("format_fontsize",actionFormatFontSize);
+    
+    actionFormatBold=new KToggleAction(i18n("&Bold"),this);
+    actionFormatBold->setIcon(KIcon("format-text-bold"));
+    actionFormatBold->setShortcut(KShortcut( Qt::CTRL + Qt::Key_B));
+    actionCollection()->addAction("format_bold",actionFormatBold);
+    connect (actionFormatBold, SIGNAL (toggled(bool)), this, SLOT (slotBold(bool)));
+    
+    actionFormatItalic =new KToggleAction(i18n("&Italic"),this);
+    actionFormatItalic ->setIcon(KIcon("format-text-italic"));
+    actionFormatItalic ->setShortcut(KShortcut( Qt::CTRL + Qt::Key_I));
+    actionCollection()->addAction("format_italic",actionFormatItalic);
+    connect (actionFormatItalic, SIGNAL (toggled(bool)), this, SLOT (slotItalic(bool)));
+    				    
+    actionFormatUnderline =new KToggleAction(i18n("&Underline"),this);
+    actionFormatUnderline ->setIcon(KIcon("format-text-underline"));
+    actionFormatUnderline ->setShortcut(KShortcut( Qt::CTRL + Qt::Key_U));
+    actionCollection()->addAction("format_underline",actionFormatUnderline);
+    connect (actionFormatUnderline, SIGNAL (toggled(bool)), this, SLOT (slotUnderline(bool)));
+			    
+    actionFormatAlignLeft =new KToggleAction(i18n("Align &Left"),this);
+    actionFormatAlignLeft ->setIcon(KIcon("format-justify-left"));
+    actionFormatAlignLeft ->setShortcut(KShortcut( Qt::CTRL + Qt::Key_L));
+    actionCollection()->addAction("format_alignleft",actionFormatAlignLeft);
     actionFormatAlignLeft->setChecked( TRUE );
-    actionFormatAlignCenter = new KToggleAction( i18n( "Align &Center" ), "text_center", CTRL
-                              + ALT + Key_C,
-                              this, SLOT( slotCenter() ),
-                              actionCollection(), "format_aligncenter" );
-    actionFormatAlignCenter->setExclusiveGroup( "align" );
-    actionFormatAlignRight = new KToggleAction( i18n( "Align &Right" ), "text_right", CTRL +
-                             ALT + Key_R,
-                             this, SLOT( slotRight() ),
-                             actionCollection(), "format_alignright" );
-    actionFormatAlignRight->setExclusiveGroup( "align" );
-    actionFormatAlignBlock = new KToggleAction( i18n( "Align &Block" ), "text_block", CTRL +
-                             Key_J,
-                             this, SLOT( slotBlock() ),
-                             actionCollection(), "format_alignblock" );
-    actionFormatAlignBlock->setExclusiveGroup( "align" );
-    */
-/*
+    connect (actionFormatAlignLeft, SIGNAL (toggled(bool)), this, SLOT (slotAlignLeft(bool)));
+    
+    actionFormatAlignCenter =new KToggleAction(i18n("Align &Center"),this);
+    actionFormatAlignCenter ->setIcon(KIcon("format-justify-center"));
+    actionFormatAlignCenter ->setShortcut(KShortcut( Qt::CTRL + Qt::Key_C));
+    actionCollection()->addAction("format_aligncenter",actionFormatAlignCenter);
+    connect (actionFormatAlignCenter, SIGNAL (toggled(bool)), this, SLOT (slotAlignCenter(bool)));
+    
+    actionFormatAlignRight =new KToggleAction(i18n("Align &Right"),this);
+    actionFormatAlignRight ->setIcon(KIcon("format-justify-right"));
+    actionFormatAlignRight ->setShortcut(KShortcut( Qt::CTRL + Qt::Key_R));
+    actionCollection()->addAction("format_alignright",actionFormatAlignRight);
+    connect (actionFormatAlignRight, SIGNAL (toggled(bool)), this, SLOT (slotAlignRight(bool)));
+        
+    actionFormatAlignBlock =new KToggleAction(i18n("Align &Block"),this);
+    actionFormatAlignBlock ->setIcon(KIcon("format-justify-fill"));
+    actionFormatAlignBlock ->setShortcut(KShortcut( Qt::CTRL + Qt::Key_J));
+    actionCollection()->addAction("format_alignblock",actionFormatAlignBlock);
+    connect (actionFormatAlignBlock, SIGNAL (toggled(bool)), this, SLOT (slotAlignBlock(bool)));
+    
+
+/*TODO
     actionFormatColor=new TKSelectColorAction( i18n( "Text Color..." ), TKSelectColorAction::TextColor,
                       this, SLOT( slotColor() ),actionCollection(), "format_color",true );
-    actionFormatColor->setCurrentColor (QColor (config.readEntry ("fgColor", "#000000")));
+    actionFormatColor->setCurrentColor (QColor (editorGroup.readEntry ("fgColor", "#000000")));
 */
     
         
@@ -666,31 +680,84 @@ KTagebuch::getConfig () {
 
 /** No descriptions */
 void
-KTagebuch::slotBold () {
-   //TODO text->setBold (actionFormatBold->isChecked());
+KTagebuch::slotBold (bool toggled) {
+  QTextCharFormat format;
+  if(toggled)
+    format.setFontWeight(QFont::Bold);
+  else
+    format.setFontWeight(QFont::Normal);
+  text->setCurrentCharFormat(format);   
 }
 
 /** No descriptions */
 void
-KTagebuch::slotUnderline () {
-   //TODO text->setUnderline (actionFormatUnderline->isChecked ());
+KTagebuch::slotUnderline (bool toggled) {
+  QTextCharFormat format;
+  format.setFontUnderline(toggled);
+  
+  text->setCurrentCharFormat(format);
 }
 
 /** No descriptions */
 void
-KTagebuch::slotItalic () {
-  //TODO  text->setItalic (actionFormatItalic->isChecked ());
+KTagebuch::slotItalic (bool toggled) {
+  QTextCharFormat format;
+  format.setFontItalic(toggled);
+  
+  text->setCurrentCharFormat(format);
+}
+
+/** No descriptions */
+void
+KTagebuch::slotAlignLeft(bool toggled) {
+  text->setAlignment(Qt::AlignLeft);
+  actionFormatAlignBlock->setChecked(false);
+  actionFormatAlignCenter->setChecked(false);
+  actionFormatAlignRight->setChecked(false);
+}
+
+/** No descriptions */
+void
+KTagebuch::slotAlignCenter(bool toggled) {
+  text->setAlignment(Qt::AlignCenter);
+  actionFormatAlignBlock->setChecked(false);
+  actionFormatAlignLeft->setChecked(false);
+  actionFormatAlignRight->setChecked(false);
+}
+
+/** No descriptions */
+void
+KTagebuch::slotAlignRight(bool toggled) {
+  text->setAlignment(Qt::AlignRight);
+  actionFormatAlignBlock->setChecked(false);
+  actionFormatAlignCenter->setChecked(false);
+  actionFormatAlignLeft->setChecked(false);
+}
+
+/** No descriptions */
+void
+KTagebuch::slotAlignBlock(bool toggled) {
+  text->setAlignment(Qt::AlignJustify);
+  actionFormatAlignRight->setChecked(false);
+  actionFormatAlignCenter->setChecked(false);
+  actionFormatAlignLeft->setChecked(false);
 }
 
 /** No descriptions */
 void
 KTagebuch::setFont (const QString &font) {
-  /*TODO
-    int fontSize=actionFormatFontSize->fontSize();
-    text->setCurrentFont (QFont(font).family());
-    text->setPointSize(fontSize);
+    int size=actionFormatFontSize->fontSize();
+    QFont qFont(font);
+    qFont.setPointSize(size);
+    text->setCurrentFont (qFont);
     text->setFocus();
-    */
+}
+
+void KTagebuch::setFontSize(int size) {
+    QFont font=text->font();
+    font.setPointSize(size);
+    text->setFont(font);
+    text->setFocus();  
 }
 
 /** sets font and colors */
@@ -803,48 +870,6 @@ KTagebuch::slotInsertImage () {
     */
 }
 
-/** text will be leftaligned */
-void
-KTagebuch::slotLeft () {
-  /*TODO
-    if ( actionFormatAlignLeft->isChecked() ) {
-        text->setAlignment (Qt::AlignLeft);
-    } else
-        actionFormatAlignLeft->setChecked( true );
-*/
-}
-
-/** text will be rightaligned */
-void
-KTagebuch::slotRight () {
-  /*
-    if ( actionFormatAlignRight->isChecked() ) {
-        text->setAlignment (Qt::AlignRight);
-    } else
-        actionFormatAlignRight->setChecked( true );
-    */
-}
-
-/** text will be centered */
-void
-KTagebuch::slotCenter () {
-  /*TODO
-    if ( actionFormatAlignCenter->isChecked() ) {
-        text->setAlignment (Qt::AlignCenter);
-    } else
-        actionFormatAlignCenter->setChecked( true );
-    */
-}
-
-void KTagebuch::slotBlock() {
-  /*
-    if ( actionFormatAlignBlock->isChecked() ) {
-        text->setAlignment (Qt::AlignJustify);
-    } else
-        actionFormatAlignBlock->setChecked( true );
-    */
-}
-
 void
 KTagebuch::insert (QString string) {
    text->insertHtml(string);
@@ -908,13 +933,6 @@ void KTagebuch::insertHTML(QString HTMLtext) {
     */
 }
 
-void KTagebuch::setFontSize(int size) {
-  /*TODO
-    text->setPointSize(size);
-    text->setFocus();
-    */
-}
-
 void KTagebuch::slotColor() {
     //color of icon does not change if color is selected from color chooser
     /*TODO
@@ -930,10 +948,8 @@ FileSystem* KTagebuch::getFileSystem(){
 
 /** called by text (QTextEdit) */
 void KTagebuch::slotFontChanged(const QFont & f) {
-  /*
     actionFormatFontSize->setFontSize(f.pointSize());
-    actionFormatFontFamily->setFont (f.family ());
-    */
+    actionFormatFontFamily->setFont (f.family ()); 
 }
 
 /** called by text (QTextEdit) */

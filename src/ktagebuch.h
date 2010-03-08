@@ -132,11 +132,11 @@ private slots:
     /** No descriptions */
     void slotOpenSetupDlg();
     /** No descriptions */
-    void slotBold();
+    void slotBold(bool toggled);
     /** No descriptions */
-    void slotItalic();
+    void slotItalic(bool toggled);
     /** No descriptions */
-    void slotUnderline();
+    void slotUnderline(bool toggled);
     /** No descriptions */
     void slotPrint();
     /** No descriptions */
@@ -146,13 +146,13 @@ private slots:
     /** No descriptions */
     void slotInsertImage();
     /** No descriptions */
-    void slotLeft();
+    void slotAlignLeft(bool);
     /** No descriptions */
-    void slotCenter();
+    void slotAlignCenter(bool);
     /** No descriptions */
-    void slotRight();
+    void slotAlignRight(bool);
     /** No descriptions */
-    void slotBlock();
+    void slotAlignBlock(bool);
     /** sets the text color, called by tkselectcoloraction */
     void slotColor();
     void slotFontChanged(const QFont & f);

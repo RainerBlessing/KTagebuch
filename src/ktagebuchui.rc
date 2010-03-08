@@ -30,7 +30,7 @@ http://www.kde.org/standards/kxmlgui/1.0/kxmlgui.xsd" >
   <Action name="lastEntry"/>
   <Action name="datepicker"/>  
 </ToolBar>
-<ToolBar name="fontToolBar" position="top"><text>Font Toolbar</text>
+<ToolBar name="fontToolBar" iconText="icononly" position="top"><text>Font Toolbar</text>
   <Action name="format_fontfamily"/>
   <Action name="format_fontsize" />
   <Separator/>
