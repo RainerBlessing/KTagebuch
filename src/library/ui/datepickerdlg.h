@@ -1,7 +1,7 @@
 /***************************************************************************
                           datepickerdlg.h  -  description
                              -------------------
-    begin                : Son Mär 31 2002
+    begin                : Son March 31 2002
     copyright            : (C) 2002 by Rainer Blessing
     email                : rainer@theblessing.net
  ***************************************************************************/
@@ -18,20 +18,21 @@
 #ifndef DATEPICKERDLG_H
 #define DATEPICKERDLG_H
 
-#include <kdialogbase.h>
+#include <kdialog.h>
 #include <kdatepicker.h>
 #include "ktagebuch.h"
 
 extern KTagebuch *ktagebuchapp;
 
-class DatepickerDlg : public KDialogBase  {
+class DatepickerDlg : public KDialog {
 
 Q_OBJECT
 public:
-	DatepickerDlg();
+	DatepickerDlg(KTagebuch *ktagebuch);
 	~DatepickerDlg();
 private:
-  KDatePicker* dateW;
+  KDatePicker *dateW;
+  KTagebuch *m_ktagebuch;
 private slots: // Private slots
   /** No descriptions */
   void slotOk();

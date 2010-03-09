@@ -1,7 +1,7 @@
 /***************************************************************************
                           datepickerdlg.cpp  -  description
                              -------------------
-    begin                : Son Mär 31 2002
+    begin                : Son Maerz 31 2002
     copyright            : (C) 2002 by Rainer Blessing
     email                : 1@theblessing.net
  ***************************************************************************/
@@ -15,14 +15,17 @@
  *                                                                         *
  ***************************************************************************/
 
-#include "ui/datepickerdlg.h"
-//#include "ui/datepickerdlg.moc"
+#include "library/ui/datepickerdlg.h"
 
-DatepickerDlg::DatepickerDlg():
+DatepickerDlg::DatepickerDlg(KTagebuch *ktagebuch):
 
-KDialogBase((QWidget*)ktagebuchapp,"title",true){  
-  dateW= new KDatePicker(this);
+KDialog((QWidget*)ktagebuch),m_ktagebuch(ktagebuch) {  
+  setButtons( KDialog::Ok | KDialog::Cancel | KDialog::Apply );
+  dateW= new KDatePicker(this);  
+
   setMainWidget (dateW);
+  connect( this, SIGNAL( applyClicked() ), this, SLOT( slotApply() ) );
+  connect( this, SIGNAL( okClicked() ), this, SLOT( slotOk() ) );
 }
 DatepickerDlg::~DatepickerDlg(){
 }
@@ -34,5 +37,5 @@ void DatepickerDlg::slotOk(){
 
 /** No descriptions */
 void DatepickerDlg::slotApply(){
-  ktagebuchapp->setDate(  dateW->date());
+  m_ktagebuch->setDate(  dateW->date());
 }

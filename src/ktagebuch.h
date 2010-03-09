@@ -10,6 +10,8 @@
 #include <kxmlguiwindow.h>
 
 #include "ui_prefs_base.h"
+#include "ui_prefs_colors.h"
+#include "ui_prefs_font.h"
 
 class KTagebuchView;
 class QPrinter;
@@ -23,6 +25,7 @@ class KFontCombo;
 class KFontSizeAction;
 class KFontAction;
 class KToolBar;
+class KTagebuchConfigDialog;
 
 /**
  * This class serves as the main window for KTagebuch.  It handles the
@@ -46,8 +49,6 @@ public:
      */
     virtual ~KTagebuch();
 
-        /** No descriptions */
-    KConfig* getConfig();
     /** sets font and colors */
     void applyConfig();
     void insert(QString string);
@@ -55,7 +56,7 @@ public:
     QDate today();
     /** selects specified text */
     void select(int para,int index,int length);
-
+    
     //void getCursorPosition(int* para,int* index){ text->getCursorPosition(para,index); };
     /*
     KTagebuchConfigDialog *preferencesBox() {
@@ -72,6 +73,8 @@ public:
     /** inserts text into the entry */
     void insertHTML(QString HTMLtext);
 
+    
+    
   private:
     enum saveResult{ SAVE_OK, SAVE_CANCEL,SAVE_NO, SAVE_RETRY, SAVE_ERROR };
     
@@ -161,7 +164,7 @@ private slots:
     void slotExportEntry();
 private:
     void setupActions();
-//    KTagebuchConfigDialog *cdlg;
+    KTagebuchConfigDialog *cdlg;
     FileSystem *m_fileSystem;
 //    LibraryLoader *mLibraryLoader;
     KToolBar *browseTB;
@@ -169,11 +172,8 @@ private:
     KDatePicker* dateW;
     KFontCombo* fontCombo;
     KFontSizeAction* actionFormatFontSize;
-    QLabel* m_dateL;
     QDate currDate;
     QDate todayD;
-    KConfig config;
-    KConfigGroup editorGroup;
     KFontAction *actionFormatFontFamily;
     KToggleAction *actionFormatBold;
     KToggleAction *actionFormatItalic;
@@ -191,6 +191,8 @@ private:
     void loadPlugins();
 
     Ui::prefs_base ui_prefs_base ;
+    Ui::prefs_colors ui_prefs_colors ;
+    Ui::prefs_font ui_prefs_font ;
     KTagebuchView *m_view;
 
     QPrinter   *m_printer;

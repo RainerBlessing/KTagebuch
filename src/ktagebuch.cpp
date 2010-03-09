@@ -32,6 +32,8 @@
 #include <ktoggleaction.h>
 
 #include "fs/filesystem.h"
+#include "library/ui/datepickerdlg.h"
+
 //#include "library/tkcoloractions.h"
 
 KTagebuch::KTagebuch()
@@ -55,8 +57,6 @@ KTagebuch::KTagebuch()
     QDate qdate;
     currDate = qdate;
     todayD = qdate.currentDate ();
-
-    editorGroup=config.group ("Editor");
     
     browseTB = new KToolBar ((QWidget*)this, "Browsing Toolbar"); 
     browseTB->setToolButtonStyle(Qt::ToolButtonTextOnly);
@@ -159,14 +159,9 @@ void KTagebuch::setupActions()
     actionCollection()->addAction("format_fontfamily",actionFormatFontFamily);
     connect( actionFormatFontFamily, SIGNAL( triggered( const QString & ) ),
              this, SLOT( setFont( const QString & ) ) );
-    QFont f= QApplication::font ();
-    if (editorGroup.readEntry ("font")!=NULL) {
-        f.fromString (editorGroup.readEntry ("font"));
-    } else {
-        f = QApplication::font ();
-    }
+    QFont f=Settings::font();
     
-   actionFormatFontFamily->setFont (f.family ());
+    actionFormatFontFamily->setFont (f.family ());
 
     actionFormatFontSize=new KFontSizeAction(i18n("Font Size"),this);
     connect (actionFormatFontSize, SIGNAL (triggered(int)), this, SLOT (setFontSize(int)));
@@ -221,7 +216,7 @@ void KTagebuch::setupActions()
 /*TODO
     actionFormatColor=new TKSelectColorAction( i18n( "Text Color..." ), TKSelectColorAction::TextColor,
                       this, SLOT( slotColor() ),actionCollection(), "format_color",true );
-    actionFormatColor->setCurrentColor (QColor (editorGroup.readEntry ("fgColor", "#000000")));
+    actionFormatColor->setCurrentColor (QColor (m_editorGroup.readEntry ("fgColor", "#000000")));
 */
     
         
@@ -295,13 +290,13 @@ void KTagebuch::setupActions()
     
     KAction *datepickerAction = new KAction(this);
     datepickerAction->setText(i18n ("Select a date"));
-    datepickerAction->setIcon(KIcon("date"));
+    datepickerAction->setIcon(KIcon("office-calendar"));
     actionCollection()->addAction("datepicker",datepickerAction);
     connect(datepickerAction,SIGNAL(triggered()),this,SLOT (slotDatepicker()));            
     
-    if (editorGroup.readEntry("MenuBar").isEmpty())
+    /*TODO if (m_editorGroup.readEntry("MenuBar").isEmpty())
         resize(800,600);
-
+*/
     setAutoSaveSettings ();
 /* TODO
     mLibraryLoader=new LibraryLoader();
@@ -329,12 +324,23 @@ void KTagebuch::optionsPreferences()
     //avoid to have 2 dialogs shown
     if ( KConfigDialog::showDialog( "settings" ) )  {
         return;
-    }
+    }    
     KConfigDialog *dialog = new KConfigDialog(this, "settings", Settings::self());
     QWidget *generalSettingsDlg = new QWidget;
     ui_prefs_base.setupUi(generalSettingsDlg);
     dialog->addPage(generalSettingsDlg, i18n("General"), "package_setting");
-    connect(dialog, SIGNAL(settingsChanged(QString)), m_view, SLOT(settingsChanged()));
+    
+    /*
+    QWidget *colorSettingsDlg = new QWidget;
+    ui_prefs_colors.setupUi(colorSettingsDlg);
+    dialog->addPage(colorSettingsDlg, i18n("Colors"), "package_setting");
+    */
+    
+    QWidget *fontSettingsDlg = new QWidget;
+    ui_prefs_font.setupUi(fontSettingsDlg);
+    dialog->addPage(fontSettingsDlg, i18n("Font"), "package_setting");
+    
+    connect(dialog, SIGNAL(settingsChanged(const QString &)), m_view, SLOT(settingsChanged()));
     dialog->setAttribute( Qt::WA_DeleteOnClose );
     dialog->show();
 }
@@ -431,21 +437,15 @@ KTagebuch::loadEntry (QDate qdate) {
     getDate_Str (qdate, &dirname);
     QString entry= m_fileSystem->loadEntry(dirname.toInt());
     
-    KConfigGroup editorGroup=config.group ("Editor");
-    QFont font;
-    if (editorGroup.readEntry ("font")!=NULL) {
-        font.fromString (editorGroup.readEntry ("font"));
-    } else {
-        font = QApplication::font ();
-    }
-    if (entry!=0) {
-            text->setTextColor (QColor (editorGroup.readEntry ("fgColor", "#000000")));
-	    /* TODO
-      
-            text->
-            setPaper (QBrush
-                      (QColor (editorGroup.readEntry ("bgColor", "#ffffff"))));
-		      */
+    QFont font=Settings::font();
+    
+    m_view->settingsChanged();
+    
+    text->setTextColor(Settings::fg_color());
+    text->setTextBackgroundColor(Settings::bg_color());
+    text->setCurrentFont (font);
+    
+    if (entry!=0) {            	    
             text->setText (entry);            
             emit loadEntry();
     } else {
@@ -456,15 +456,11 @@ KTagebuch::loadEntry (QDate qdate) {
         QTextStream t (&todayStr, QIODevice::ReadOnly);
 
         text->setText ("");
-        text->setCurrentFont (font);
-        text->setTextColor (QColor (editorGroup.readEntry ("fgColor", "#000000")));
-        //TODO text->setPaper (QBrush (QColor (editorGroup.readEntry ("bgColor", "#ffffff"))));
         text->insertHtml(t.readAll());
-    }
+    }    
 
     text->document()->setModified(false);
-    statusBar ()->changeItem(i18n ("testtttttttt "),0);
-    
+    statusBar ()->changeItem(i18n (" "),0);    
     return true;
 }
 
@@ -528,7 +524,7 @@ KTagebuch::saveResult KTagebuch::entryChanged () {
     query;
     
     if (text->document()->isModified ()) {
-        if (!(bool)editorGroup.readEntry("autosave",true)) {
+        if (!Settings::autosave()) {
             query = KMessageBox::warningYesNoCancel (this,
                     i18n
                     ("The current Document has been modified.\nWould you like to save it?"));
@@ -614,6 +610,7 @@ KTagebuch::slotLastEntry () {
 bool KTagebuch::queryClose () {
     if (entryChanged () == SAVE_CANCEL)
         return false;
+    Settings::self()->writeConfig();
     KTagebuch().queryExit();
     return true;
 }
@@ -621,10 +618,8 @@ bool KTagebuch::queryClose () {
 /** opens a KDatepicker dialog */
 void
 KTagebuch::slotDatepicker () {
-    /*
-    DatepickerDlg *dpd = new DatepickerDlg ();
-    dpd->show ();
-    */
+    DatepickerDlg *dpd = new DatepickerDlg (this);
+    dpd->show ();    
 }
 
 /** No descriptions */
@@ -670,12 +665,6 @@ KTagebuch::slotInsertHTML () {
 void
 KTagebuch::slotOpenSetupDlg () {
     //TODO cdlg->show ();
-}
-
-/** No descriptions */
-KConfig *
-KTagebuch::getConfig () {
-    return &config;
 }
 
 /** No descriptions */
@@ -763,21 +752,20 @@ void KTagebuch::setFontSize(int size) {
 /** sets font and colors */
 void
 KTagebuch::applyConfig () {
-    QFont font;
-    font.fromString (editorGroup.readEntry ("font"));
-    text->setCurrentFont (font);
-/*TODO
+    QFont font=Settings::font();
+    text->setCurrentFont (Settings::font());
     actionFormatFontFamily->setFont(font.family());
     actionFormatFontSize->setFontSize(font.pointSize());
-    actionFormatColor->setCurrentColor(QColor(config.readEntry ("fgColor", "#000000")));
-    */
-    text->setTextColor (QColor (editorGroup.readEntry ("fgColor", "#000000")));
-   //TODO text->setPaper (QBrush (QColor (editorGroup.readEntry ("bgColor", "#ffffff"))));
-    if (editorGroup.readEntry ("wrap",true)) {
-//TODO        text->setWordWrap (Q3TextEdit::FixedColumnWidth);
-//TODO        text->setWrapColumnOrWidth (config.readNumEntry ("wrapAt"));
+    //TODO actionFormatColor->setCurrentColor(QColor(config.readEntry ("fgColor", "#000000")));    
+    
+    text->setTextColor(Settings::fg_color());
+    text->setTextBackgroundColor(Settings::bg_color());
+   
+    if (Settings::wrap()) {
+      text->setWordWrapMode (QTextOption::WordWrap);
+      text->setLineWrapColumnOrWidth(Settings::wrap_at());
     } else {
-//TODO        text->setWordWrap (Q3TextEdit::WidgetWidth);
+      text->setWordWrapMode(QTextOption::NoWrap);
     }  
 }
 

@@ -3,11 +3,12 @@ set(ktagebuch_SRCS
    main.cpp
    ktagebuchview.cpp
    fs/filesystem.cpp
+   library/ui/datepickerdlg.cpp   
  )
 
 add_subdirectory( fs )
 
-kde4_add_ui_files(ktagebuch_SRCS prefs_base.ui)
+kde4_add_ui_files(ktagebuch_SRCS prefs_base.ui prefs_colors.ui prefs_font.ui)
 
 kde4_add_kcfg_files(ktagebuch_SRCS settings.kcfgc )
 

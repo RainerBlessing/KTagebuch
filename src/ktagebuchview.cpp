@@ -10,14 +10,14 @@
 #include <ktextedit.h>
 #include <klocale.h>
 #include <QtGui/QLabel>
+#include "ktagebuch.h"
 
-KTagebuchView::KTagebuchView(QWidget *parent)
+KTagebuchView::KTagebuchView(KTagebuch *ktagebuch):m_ktagebuch(ktagebuch)
 {
-  setParent(parent);
+  setParent(ktagebuch);  
   addTab(new KTextEdit(this),"textEdit");  
-  //  ui_ktagebuchview_base.setupUi(this);
-    settingsChanged();
-    setAutoFillBackground(true);
+  setAutoFillBackground(true);
+  settingsChanged();
 }
 
 KTagebuchView::~KTagebuchView()
@@ -32,19 +32,20 @@ KTextEdit* KTagebuchView::getTextEdit()
 void KTagebuchView::switchColors()
 {
     // switch the foreground/background colors of the label
+    /*
     QColor color = Settings::col_background();
     Settings::setCol_background( Settings::col_foreground() );
     Settings::setCol_foreground( color );
-
+*/
     settingsChanged();
 }
 
 void KTagebuchView::settingsChanged()
 {
     QPalette pal;
-    pal.setColor( QPalette::Window, Settings::col_background());
-    pal.setColor( QPalette::WindowText, Settings::col_foreground());
-    
+    pal.setColor( QPalette::Window, Settings::bg_color());
+    pal.setColor( QPalette::WindowText, Settings::fg_color());
+    getTextEdit()->setPalette(pal);
     // i18n : internationalization
     emit signalChangeStatusbar( i18n("Settings changed") );
 }

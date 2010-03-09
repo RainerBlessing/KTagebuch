@@ -13,6 +13,7 @@
 class QPainter;
 class KUrl;
 class KTextEdit;
+class KTagebuch;
 
 /**
  * This is the main view class for KTagebuch.  Most of the non-menu,
@@ -31,7 +32,7 @@ public:
     /**
      * Default constructor
      */
-    KTagebuchView(QWidget *parent);
+    KTagebuchView(KTagebuch *parent);
 
     /**
      * Destructor
@@ -40,7 +41,7 @@ public:
 
     KTextEdit* getTextEdit();
 private:
-    //Ui::ktagebuchview_base ui_ktagebuchview_base;    
+  KTagebuch *m_ktagebuch;
 signals:
     /**
      * Use this signal to change the content of the statusbar
@@ -52,7 +53,7 @@ signals:
      */
     void signalChangeCaption(const QString& text);
 
-private slots:
+public slots:
     void switchColors();
     void settingsChanged();
 };

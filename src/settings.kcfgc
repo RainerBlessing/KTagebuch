@@ -2,5 +2,5 @@
 File=ktagebuch.kcfg
 ClassName=Settings
 Singleton=true
-Mutators=col_background,col_foreground
+Mutators=fg_color,bg_color,wrap,wrap_at,autosave,font
 # will create the necessary code for setting those variables
