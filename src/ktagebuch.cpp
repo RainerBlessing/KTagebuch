@@ -33,6 +33,7 @@
 
 #include "fs/filesystem.h"
 #include "library/ui/datepickerdlg.h"
+#include "library/ui/finddialog.h"
 
 //#include "library/tkcoloractions.h"
 
@@ -106,7 +107,7 @@ void KTagebuch::setupActions()
     KStandardAction::selectAll (this, SLOT (selectAll ()), actionCollection ());
 
     KStandardAction::print (this, SLOT (slotPrint ()), actionCollection ());
-    KStandardAction::find (this, SLOT (slotFind ()), actionCollection ());
+    //TODOKStandardAction::find (this, SLOT (slotFind ()), actionCollection ());
 
     KAction *insertDateAction = new KAction (this);
     insertDateAction->setText(i18n ("Insert Date"));
@@ -125,7 +126,7 @@ void KTagebuch::setupActions()
     insertDateAndTimeAction->setShortcut(KShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_D));
     actionCollection()->addAction("insertDateAndTime",insertDateAndTimeAction);
     connect(insertDateAndTimeAction,SIGNAL(triggered()),this,SLOT (slotInsertDateAndTime ()));
-    
+/*TODO    
     KAction *insertImageAction = new KAction(this);
     insertImageAction->setText("Insert &Image");
     insertImageAction->setShortcut(KShortcut( Qt::CTRL + Qt::SHIFT + Qt::Key_I));
@@ -137,7 +138,7 @@ void KTagebuch::setupActions()
     insertHTMLAction->setShortcut(KShortcut( Qt::CTRL + Qt::Key_H));
     actionCollection()->addAction("insertHTML",insertHTMLAction);
     connect(insertHTMLAction,SIGNAL(triggered()),this,SLOT(slotInsertHTML ()));
-
+*/
     KAction *openSetupDlgAction = new KAction(this);			
     openSetupDlgAction->setText(i18n ("KTagebuch &Configuration"));
     /* TODO
@@ -818,9 +819,9 @@ KTagebuch::slotPrint () {
 /** No descriptions */
 void
 KTagebuch::slotFind () {
-  /*TODO
-    FindDialog *fd = new FindDialog (fileSystem);
-    fd->show ();
+    /*
+    FindDialog *fd = new FindDialog (this,m_fileSystem);
+    fd->show ();  
     */
 }
 

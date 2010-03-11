@@ -4,6 +4,7 @@ set(ktagebuch_SRCS
    ktagebuchview.cpp
    fs/filesystem.cpp
    library/ui/datepickerdlg.cpp   
+   library/ui/finddialog.cpp
  )
 
 add_subdirectory( fs )

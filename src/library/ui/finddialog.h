@@ -18,24 +18,24 @@
 #ifndef FINDDIALOG_H
 #define FINDDIALOG_H
 
-#include <kdialogbase.h>
-#include <klistview.h>
-#include <qabstractlayout.h>
+#include <kdialog.h>
 #include <qlineedit.h>
 #include "ktagebuch.h"
 class FileSystem;
+class QTreeWidget;
+
 extern KTagebuch *ktagebuchapp;
 
-class FindDialog : public KDialogBase  {
+class FindDialog : public KDialog{
 
 Q_OBJECT
 
 public:
-	FindDialog(FileSystem* fileSytem);
+	FindDialog(KTagebuch* ktagebuchapp,FileSystem* fileSystem);
 	~FindDialog();
 private:
   KGuiItem* close;
-  QListView* ListView;
+  QTreeWidget* m_treeWidget;
   KTagebuch* ktagebuch;
   QLineEdit* findLE;
   QCheckBox* caseCB;

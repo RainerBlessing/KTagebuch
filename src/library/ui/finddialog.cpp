@@ -16,24 +16,36 @@ email                : 1@theblessing.net
 ***************************************************************************/
 #include <qregexp.h>
 #include <qlineedit.h>
-#include <qbuttongroup.h>
 #include <qcheckbox.h>
+#include <QVBoxLayout>
+#include <QLabel>
 #include <kguiitem.h>
-#include "ui/finddialog.h"
+#include <QTreeWidget>
+#include <QGroupBox>
+#include <QList>
+
+#include "finddialog.h"
 //#include "ui/finddialog.moc"
 #include <kmessagebox.h>
-#include "filesystem.h"
+#include "../../fs/filesystem.h"
 
-FindDialog::FindDialog(FileSystem* fileSystem):
+FindDialog::FindDialog(KTagebuch* ktagebuchapp,FileSystem* fileSystem):
 
-KDialogBase(KDialogBase::Plain,i18n("Find"),KDialogBase::User1|KDialogBase::User2,User1, ktagebuchapp ,"find",true,false,KGuiItem(i18n("Find")),KGuiItem(i18n("Close")) ){
-ktagebuch=ktagebuchapp;
-this->fileSystem=fileSystem;
-QWidget *page = this->plainPage();
-QVBoxLayout *topLayout = new QVBoxLayout( page, 0, spacingHint() );
-ListView=new QListView(page);
-ListView->addColumn( i18n("Entries") );
-ListView->setTreeStepSize(20);
+KDialog(ktagebuchapp){
+  this->setCaption(i18n("Find"));
+  this->setButtons(KDialog::User1|KDialog::User2);//TODO Default ,KDialog::User1
+  this->setButtonGuiItem(KDialog::User1,KGuiItem(i18n("Find")));
+  this->setButtonGuiItem(KDialog::User1,KGuiItem(i18n("Close")));
+  ktagebuch=ktagebuchapp;
+  this->fileSystem=fileSystem;
+  QWidget *page = this;
+  QVBoxLayout *topLayout = new QVBoxLayout( page);
+
+m_treeWidget=new QTreeWidget(page);
+m_treeWidget->setColumnCount(1);
+
+QList<QTreeWidgetItem *> items;
+
 dateList=fileSystem->getDates();
 
 for ( QStringList::Iterator it = dateList->begin(); it != dateList->end(); ++it ) {
@@ -42,83 +54,79 @@ for ( QStringList::Iterator it = dateList->begin(); it != dateList->end(); ++it 
 	QString month=(*it).mid(4,2);
 	QString day=(*it).right(2);
 	
+	QList<QTreeWidgetItem *>::iterator i = items.begin();
 	bool found=false;
-	QCheckListItem* yearLV=(QCheckListItem*)ListView->firstChild();
-	if (yearLV){
-		while ( yearLV && !found){
-			if ( (yearLV->text(0)).compare(year)==0 ){
-				found=true;
-			}else{
-				yearLV=(QCheckListItem*)yearLV->nextSibling();
-			}
-		}
-	}      
-	if (!found){	 
-		new QCheckListItem(ListView,year,QCheckListItem::CheckBox);
+	while( i != items.end()&&found==false){
+	  if((*i)->text(0)==year){
+	    found=true;
+	  }
 	}
+	if(found==false)
+	  items.append(new QTreeWidgetItem(m_treeWidget, QStringList(year)));
+/*
 
-	yearLV=(QCheckListItem*)ListView->firstChild();
+	yearLV=(Q3CheckListItem*)m_treeWidget->firstChild();
 	found=false;
-	QCheckListItem* monthLV;
+	Q3CheckListItem* monthLV;
 	while ( yearLV && !found){
 		if ( (yearLV->text(0)).compare(year)==0 ){
-			monthLV=(QCheckListItem*)yearLV->firstChild();
+			monthLV=(Q3CheckListItem*)yearLV->firstChild();
 			while ( monthLV && !found){
 				if ( (monthLV->text(0)).compare(month)==0 ){
 					found=true;
 
 				}else{
-					monthLV=(QCheckListItem*)monthLV->nextSibling();
+					monthLV=(Q3CheckListItem*)monthLV->nextSibling();
 				}
 			}
 			if (!found){
-				new QCheckListItem(yearLV,month,QCheckListItem::CheckBox);
+				new Q3CheckListItem(yearLV,month,Q3CheckListItem::CheckBox);
 			}
 			found=true;
 		}else{
-			yearLV=(QCheckListItem*)yearLV->nextSibling();
+			yearLV=(Q3CheckListItem*)yearLV->nextSibling();
 		}
 	}
 
-	monthLV=(QCheckListItem*)yearLV->firstChild();
+	monthLV=(Q3CheckListItem*)yearLV->firstChild();
 	found=false;
 	while ( monthLV && !found){
 		if ( (monthLV->text(0)).compare(month)==0 ){
-			QCheckListItem* dayLV=(QCheckListItem*)monthLV->firstChild();
+			Q3CheckListItem* dayLV=(Q3CheckListItem*)monthLV->firstChild();
 			while ( dayLV && !found){
 				if ( (dayLV->text(0)).compare(day)==0 ){
 					found=true;
 
 				}else{
-					dayLV=(QCheckListItem*)dayLV->nextSibling();
+					dayLV=(Q3CheckListItem*)dayLV->nextSibling();
 				}
 			}
 			if (!found){
-				new QCheckListItem(monthLV,day,QCheckListItem::CheckBox);
+				new Q3CheckListItem(monthLV,day,Q3CheckListItem::CheckBox);
 			}
 			found=true;
 		}else{
-			monthLV=(QCheckListItem*)monthLV->nextSibling();
+			monthLV=(Q3CheckListItem*)monthLV->nextSibling();
 		}
 	}
-
+*/
 }
-topLayout->addWidget( ListView );
+topLayout->addWidget( m_treeWidget );
 QLabel* findLB=new QLabel(i18n("Find:"),page);
 topLayout->addWidget(findLB);
 findLE=new QLineEdit(page);
 topLayout->addWidget(findLE);
-QButtonGroup* optionsBG=new QButtonGroup (2,QGroupBox::Horizontal,i18n("Options"),page);
-caseCB=new QCheckBox(i18n("Case &Sensitive"),optionsBG);
-backwCB=new QCheckBox(i18n("Find &Backwards"),optionsBG);
+QGroupBox *groupBox=new QGroupBox(i18n("Options"),page);
+caseCB=new QCheckBox(i18n("Case &Sensitive"),groupBox);
+backwCB=new QCheckBox(i18n("Find &Backwards"),groupBox);
 connect (backwCB,SIGNAL (toggled(bool)),this,SLOT(slotBackw(bool)));
 
-topLayout->addWidget(optionsBG);
-setMainWidget(page);
-ListView->setRootIsDecorated(TRUE);
+topLayout->addWidget(groupBox);
+setMainWidget(m_treeWidget );
+m_treeWidget->setRootIsDecorated(TRUE);
 
-//ListView->setGeometry(10,10,210,210);
-ListView->setAllColumnsShowFocus(true);
+//m_treeWidget->setGeometry(10,10,210,210);
+m_treeWidget->setAllColumnsShowFocus(true);
 	
 //topLayout->addStretch(10);
 }
@@ -130,32 +138,32 @@ FindDialog::~FindDialog(){
 /** No descriptions */
 void FindDialog::slotFind(){
 	QStringList entriesSL;
-
-	QCheckListItem* yearLV=(QCheckListItem*)ListView->firstChild();
+/*
+	Q3CheckListItem* yearLV=(Q3CheckListItem*)m_treeWidget->firstChild();
 	if (yearLV){
-		QCheckListItem* monthLV;
-		QCheckListItem* dayLV;
+		Q3CheckListItem* monthLV;
+		Q3CheckListItem* dayLV;
 		while ( yearLV ){
 			if ( yearLV->isOn()){
 				entriesSL.append(yearLV->text());
 			}else{
-				monthLV=(QCheckListItem*)yearLV->firstChild();
+				monthLV=(Q3CheckListItem*)yearLV->firstChild();
 				while ( monthLV){
 					if ( monthLV->isOn()){
 						entriesSL.append(yearLV->text()+monthLV->text());
 					}else{
-						dayLV=(QCheckListItem*)monthLV->firstChild();
+						dayLV=(Q3CheckListItem*)monthLV->firstChild();
 						while ( dayLV){
 							if ( dayLV->isOn()){
 								entriesSL.append(yearLV->text()+monthLV->text()+dayLV->text());
 							}
-							dayLV=(QCheckListItem*)dayLV->nextSibling();
+							dayLV=(Q3CheckListItem*)dayLV->nextSibling();
 						}
 					}
-					monthLV=(QCheckListItem*)monthLV->nextSibling();
+					monthLV=(Q3CheckListItem*)monthLV->nextSibling();
 				}
 			}
-			yearLV=(QCheckListItem*)yearLV->nextSibling();
+			yearLV=(Q3CheckListItem*)yearLV->nextSibling();
 		}
 	}
 
@@ -184,25 +192,27 @@ void FindDialog::slotFind(){
 		if (currentDateSTR.isEmpty()){
 			currentDateSTR=Flist->first();
 		}
-
+		*/
+/*TODO
 		it=Flist->find(currentDateSTR);
 		while ( *it) {
 			Flist2 << *it++;
 		}
-
-	}else {
+*/
+/*	}else {
 		if (currentDateSTR.isEmpty()){
 			currentDateSTR=Flist->last();
-		}
+		}*/
+/*TODO		
 		it=Flist->find(currentDateSTR);
 		while ( *it) {
 			Flist2 << *it--;
 		}
-
-	}
+*/
+	/*}
 	
-	static int para=0; /* find */
-	static int index=0; /* find */
+	static int para=0;
+	static int index=0;
 	QString directory="";
 	bool found=false;
 	
@@ -212,7 +222,7 @@ void FindDialog::slotFind(){
 			Flist2.erase(Flist2.at(0));
 		}
 		while (!directory.isEmpty() && !found) {
-			QTextEdit text(fileSystem->loadEntry(directory.toInt()));
+			Q3TextEdit text(fileSystem->loadEntry(directory.toInt()));
 				if (index<text.length()&&text.find(findLE->text(),caseCB->isChecked(),false,true,&para,&index)){
 					QString date=directory.right(8);
 					int year=atoi(date.left(4));
@@ -241,6 +251,7 @@ void FindDialog::slotFind(){
 		}
 	}
 	delete Flist;
+	*/
 }
 
 /** No descriptions */
