@@ -8,13 +8,13 @@
 static const char description[] =
     I18N_NOOP("A KDE 4 Application");
 
-static const char version[] = "%{VERSION}";
+static const char version[] = "0.80";
 
 int main(int argc, char **argv)
 {
     KAboutData about("ktagebuch", 0, ki18n("KTagebuch"), version, ki18n(description),
-                     KAboutData::License_GPL, ki18n("(C) 2002 - 2007 %{AUTHOR}"), KLocalizedString(), 0, "%{EMAIL}");
-    about.addAuthor( ki18n("%{AUTHOR}"), KLocalizedString(), "%{EMAIL}" );
+                     KAboutData::License_GPL, ki18n("(C) 2002 - 20010 Rainer Blessing"), KLocalizedString(), 0, "rainer.blessing@googlemail.com");
+    about.addAuthor( ki18n("%{AUTHOR}"), KLocalizedString(), "rainer.blessing@googlemail.com" );
     KCmdLineArgs::init(argc, argv, &about);
 
     KCmdLineOptions options;
