@@ -17,8 +17,5 @@ cmake $KDE_SRC -DCMAKE_INSTALL_PREFIX=$KDEDIR -DCMAKE_BUILD_TYPE=debugfull
 
 
 ----------------------------
-Please send all comments to:
-Anne-Marie Mahfouf
-annma@kde.org
 
 Last update: April 2008
